@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "test": "vitest run --config ../../vitest.config.ts",
+    "test": "vitest run --config ../../vitest.config.ts --dir src",
     "typecheck": "tsc --noEmit"
   },
   "files": [
