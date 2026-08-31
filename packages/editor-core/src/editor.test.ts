@@ -41,18 +41,24 @@ describe("createEditor", () => {
     expect(editor.getContent()).toBe("second");
   });
 
-  it("fires onChange when content changes", () => {
+  it("does not fire onChange for programmatic open() calls (suppressChangeEvent)", () => {
+    // NOTE: IEditor does not expose the underlying EditorView, so we cannot
+    // dispatch a real user-input transaction from this test to assert that
+    // onChange fires on genuine edits. That path is exercised manually /
+    // via e2e testing instead. What we *can* verify here is the
+    // suppressChangeEvent contract: open() replaces the whole document but
+    // must not be treated as a user edit, so registered onChange callbacks
+    // must not fire as a result of it.
     editor = createEditor({ parent: container });
     editor.open("/test.ts", "hello");
     const callback = vi.fn();
     const unsub = editor.onChange(callback);
 
-    // Simulate a programmatic dispatch to change content
     editor.open("/test.ts", "world");
 
-    // onChange should not fire on programmatic open — it fires on user edits
-    // We test the subscription/unsubscription mechanism
-    expect(typeof unsub).toBe("function");
+    expect(callback).not.toHaveBeenCalled();
+    expect(editor.getContent()).toBe("world");
+
     unsub();
   });
 

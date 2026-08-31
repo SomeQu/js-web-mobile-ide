@@ -1,9 +1,4 @@
 import type { Extension } from "@codemirror/state";
-import { javascript } from "@codemirror/lang-javascript";
-import { html } from "@codemirror/lang-html";
-import { css } from "@codemirror/lang-css";
-import { json } from "@codemirror/lang-json";
-import { markdown } from "@codemirror/lang-markdown";
 import type { LanguageId } from "./types.js";
 
 const extensionMap: Record<string, LanguageId> = {
@@ -30,24 +25,40 @@ export function detectLanguage(path: string): LanguageId {
   return extensionMap[ext] ?? "plaintext";
 }
 
-export function getLanguageExtension(lang: LanguageId): Extension[] {
+export async function getLanguageExtension(lang: LanguageId): Promise<Extension[]> {
   switch (lang) {
-    case "javascript":
+    case "javascript": {
+      const { javascript } = await import("@codemirror/lang-javascript");
       return [javascript()];
-    case "typescript":
+    }
+    case "typescript": {
+      const { javascript } = await import("@codemirror/lang-javascript");
       return [javascript({ typescript: true })];
-    case "jsx":
+    }
+    case "jsx": {
+      const { javascript } = await import("@codemirror/lang-javascript");
       return [javascript({ jsx: true })];
-    case "tsx":
+    }
+    case "tsx": {
+      const { javascript } = await import("@codemirror/lang-javascript");
       return [javascript({ typescript: true, jsx: true })];
-    case "html":
+    }
+    case "html": {
+      const { html } = await import("@codemirror/lang-html");
       return [html()];
-    case "css":
+    }
+    case "css": {
+      const { css } = await import("@codemirror/lang-css");
       return [css()];
-    case "json":
+    }
+    case "json": {
+      const { json } = await import("@codemirror/lang-json");
       return [json()];
-    case "markdown":
+    }
+    case "markdown": {
+      const { markdown } = await import("@codemirror/lang-markdown");
       return [markdown()];
+    }
     case "plaintext":
       return [];
   }

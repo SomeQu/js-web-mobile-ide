@@ -64,15 +64,23 @@ export function createEditor(options: EditorOptions): IEditor {
 
   const view = new EditorView({ state, parent });
 
+  let destroyed = false;
+
   const editor: IEditor = {
     open(path: string, content: string, language?: LanguageId): void {
       const lang = language ?? detectLanguage(path);
       suppressChangeEvent = true;
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: content },
-        effects: languageCompartment.reconfigure(getLanguageExtension(lang)),
       });
       suppressChangeEvent = false;
+
+      getLanguageExtension(lang).then((extensions) => {
+        if (destroyed) return;
+        view.dispatch({
+          effects: languageCompartment.reconfigure(extensions),
+        });
+      });
     },
 
     getContent(): string {
@@ -87,8 +95,11 @@ export function createEditor(options: EditorOptions): IEditor {
     },
 
     setLanguage(language: LanguageId): void {
-      view.dispatch({
-        effects: languageCompartment.reconfigure(getLanguageExtension(language)),
+      getLanguageExtension(language).then((extensions) => {
+        if (destroyed) return;
+        view.dispatch({
+          effects: languageCompartment.reconfigure(extensions),
+        });
       });
     },
 
@@ -107,6 +118,7 @@ export function createEditor(options: EditorOptions): IEditor {
     },
 
     destroy(): void {
+      destroyed = true;
       changeListeners.clear();
       view.destroy();
     },

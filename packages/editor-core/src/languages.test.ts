@@ -45,43 +45,43 @@ describe("detectLanguage", () => {
 });
 
 describe("getLanguageExtension", () => {
-  it("returns extensions for typescript", () => {
-    const ext = getLanguageExtension("typescript");
+  it("returns extensions for typescript", async () => {
+    const ext = await getLanguageExtension("typescript");
     expect(ext.length).toBeGreaterThan(0);
   });
 
-  it("returns extensions for javascript", () => {
-    const ext = getLanguageExtension("javascript");
+  it("returns extensions for javascript", async () => {
+    const ext = await getLanguageExtension("javascript");
     expect(ext.length).toBeGreaterThan(0);
   });
 
-  it("returns extensions for jsx", () => {
-    const ext = getLanguageExtension("jsx");
+  it("returns extensions for jsx", async () => {
+    const ext = await getLanguageExtension("jsx");
     expect(ext.length).toBeGreaterThan(0);
   });
 
-  it("returns extensions for html", () => {
-    const ext = getLanguageExtension("html");
+  it("returns extensions for html", async () => {
+    const ext = await getLanguageExtension("html");
     expect(ext.length).toBeGreaterThan(0);
   });
 
-  it("returns extensions for css", () => {
-    const ext = getLanguageExtension("css");
+  it("returns extensions for css", async () => {
+    const ext = await getLanguageExtension("css");
     expect(ext.length).toBeGreaterThan(0);
   });
 
-  it("returns extensions for json", () => {
-    const ext = getLanguageExtension("json");
+  it("returns extensions for json", async () => {
+    const ext = await getLanguageExtension("json");
     expect(ext.length).toBeGreaterThan(0);
   });
 
-  it("returns extensions for markdown", () => {
-    const ext = getLanguageExtension("markdown");
+  it("returns extensions for markdown", async () => {
+    const ext = await getLanguageExtension("markdown");
     expect(ext.length).toBeGreaterThan(0);
   });
 
-  it("returns empty array for plaintext", () => {
-    const ext = getLanguageExtension("plaintext");
+  it("returns empty array for plaintext", async () => {
+    const ext = await getLanguageExtension("plaintext");
     expect(ext).toEqual([]);
   });
 });
