@@ -33,6 +33,24 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11(vite@8.2.2)
 
+  packages/ai-assistant: {}
+
+  packages/bundler: {}
+
+  packages/editor-core: {}
+
+  packages/git-client: {}
+
+  packages/node-shims: {}
+
+  packages/registry-client: {}
+
+  packages/resolver: {}
+
+  packages/runtime-bridge: {}
+
+  packages/vfs: {}
+
 packages:
 
   '@eslint-community/eslint-utils@4.10.1':
