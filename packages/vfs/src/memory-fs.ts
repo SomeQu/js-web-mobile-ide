@@ -5,6 +5,7 @@ import {
   FileExistsError,
   NotADirectoryError,
   IsADirectoryError,
+  VfsError,
 } from "./errors.js";
 
 type FileNode = { kind: "file"; content: Uint8Array; mtime: number };
@@ -16,8 +17,17 @@ const encoder = new TextEncoder();
 
 export class MemoryFS implements IVirtualFileSystem {
   private root: DirNode = { kind: "dir", children: new Map(), mtime: Date.now() };
+  private readonly maxSymlinkDepth = 40;
 
   private getNode(path: string, followSymlinks = true): FsNode | undefined {
+    return this.getNodeRaw(path, followSymlinks, 0);
+  }
+
+  private getNodeRaw(path: string, followSymlinks: boolean, depth: number): FsNode | undefined {
+    if (depth > this.maxSymlinkDepth) {
+      throw new VfsError("ELOOP: too many levels of symbolic links", "ELOOP", path);
+    }
+
     const norm = normalize(path);
     if (norm === "/") return this.root;
 
@@ -26,7 +36,7 @@ export class MemoryFS implements IVirtualFileSystem {
 
     for (let i = 0; i < parts.length; i++) {
       if (current.kind === "symlink" && followSymlinks) {
-        const resolved = this.getNode(current.target, true);
+        const resolved = this.getNodeRaw(current.target, true, depth + 1);
         if (!resolved) return undefined;
         current = resolved;
       }
@@ -37,7 +47,7 @@ export class MemoryFS implements IVirtualFileSystem {
     }
 
     if (current.kind === "symlink" && followSymlinks) {
-      return this.getNode(current.target, true);
+      return this.getNodeRaw(current.target, true, depth + 1);
     }
 
     return current;
@@ -87,11 +97,24 @@ export class MemoryFS implements IVirtualFileSystem {
   async writeFile(path: string, content: Uint8Array | string): Promise<void> {
     const norm = normalize(path);
     const data = typeof content === "string" ? encoder.encode(content) : content;
-    const parent = this.ensureParentDirs(norm);
-    const name = basename(norm);
-    const existing = parent.children.get(name);
+
+    let targetParent = this.ensureParentDirs(norm);
+    let targetName = basename(norm);
+    let existing = targetParent.children.get(targetName);
+
+    let depth = 0;
+    while (existing && existing.kind === "symlink") {
+      if (depth++ > this.maxSymlinkDepth) {
+        throw new VfsError("ELOOP: too many levels of symbolic links", "ELOOP", norm);
+      }
+      const resolvedPath = normalize(existing.target);
+      targetParent = this.ensureParentDirs(resolvedPath);
+      targetName = basename(resolvedPath);
+      existing = targetParent.children.get(targetName);
+    }
+
     if (existing && existing.kind === "dir") throw new IsADirectoryError(norm);
-    parent.children.set(name, { kind: "file", content: data.slice(), mtime: Date.now() });
+    targetParent.children.set(targetName, { kind: "file", content: data.slice(), mtime: Date.now() });
   }
 
   async mkdir(path: string, options?: MkdirOptions): Promise<void> {
@@ -182,12 +205,19 @@ export class MemoryFS implements IVirtualFileSystem {
     newParent.children.set(newName, node);
   }
 
-  // Stubs — implemented in Task 4
-  async symlink(_target: string, _path: string): Promise<void> {
-    throw new Error("not implemented");
+  async symlink(target: string, path: string): Promise<void> {
+    const norm = normalize(path);
+    const parent = this.getParentDir(norm);
+    const name = basename(norm);
+    if (parent.children.has(name)) throw new FileExistsError(norm);
+    parent.children.set(name, { kind: "symlink", target: normalize(target), mtime: Date.now() });
   }
 
-  async readlink(_path: string): Promise<string> {
-    throw new Error("not implemented");
+  async readlink(path: string): Promise<string> {
+    const norm = normalize(path);
+    const node = this.getNode(norm, false);
+    if (!node) throw new FileNotFoundError(norm);
+    if (node.kind !== "symlink") throw new VfsError("EINVAL: not a symlink", "EINVAL", norm);
+    return node.target;
   }
 }

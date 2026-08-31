@@ -201,13 +201,87 @@ describe("MemoryFS", () => {
     });
   });
 
-  describe("stubs", () => {
-    it("symlink throws not implemented", async () => {
-      await expect(fs.symlink("/target", "/link")).rejects.toThrow();
+  describe("symlink + readlink", () => {
+    it("creates and reads a symlink", async () => {
+      await fs.writeFile("/real.txt", "data");
+      await fs.symlink("/real.txt", "/link.txt");
+      const target = await fs.readlink("/link.txt");
+      expect(target).toBe("/real.txt");
     });
 
-    it("readlink throws not implemented", async () => {
-      await expect(fs.readlink("/link")).rejects.toThrow();
+    it("reads file through symlink", async () => {
+      await fs.writeFile("/real.txt", "hello");
+      await fs.symlink("/real.txt", "/link.txt");
+      const content = await fs.readFile("/link.txt");
+      expect(new TextDecoder().decode(content)).toBe("hello");
+    });
+
+    it("writes file through symlink", async () => {
+      await fs.writeFile("/real.txt", "old");
+      await fs.symlink("/real.txt", "/link.txt");
+      await fs.writeFile("/link.txt", "new");
+      const content = await fs.readFile("/real.txt");
+      expect(new TextDecoder().decode(content)).toBe("new");
+    });
+
+    it("stat follows symlink", async () => {
+      await fs.writeFile("/real.txt", "data");
+      await fs.symlink("/real.txt", "/link.txt");
+      const s = await fs.stat("/link.txt");
+      expect(s.type).toBe("file");
+      expect(s.size).toBe(4);
+    });
+
+    it("lstat returns symlink info", async () => {
+      await fs.writeFile("/real.txt", "data");
+      await fs.symlink("/real.txt", "/link.txt");
+      const s = await fs.lstat("/link.txt");
+      expect(s.type).toBe("symlink");
+    });
+
+    it("readdir through symlinked directory", async () => {
+      await fs.mkdir("/realdir");
+      await fs.writeFile("/realdir/a.txt", "a");
+      await fs.symlink("/realdir", "/linkdir");
+      const entries = await fs.readdir("/linkdir");
+      expect(entries).toEqual(["a.txt"]);
+    });
+
+    it("creates file inside symlinked directory", async () => {
+      await fs.mkdir("/realdir");
+      await fs.symlink("/realdir", "/linkdir");
+      await fs.writeFile("/linkdir/new.txt", "new");
+      const content = await fs.readFile("/realdir/new.txt");
+      expect(new TextDecoder().decode(content)).toBe("new");
+    });
+
+    it("throws FileNotFoundError for dangling symlink", async () => {
+      await fs.symlink("/nonexistent", "/dangling");
+      await expect(fs.readFile("/dangling")).rejects.toThrow(FileNotFoundError);
+    });
+
+    it("throws FileNotFoundError for readlink on non-symlink", async () => {
+      await fs.writeFile("/f", "x");
+      await expect(fs.readlink("/f")).rejects.toThrow();
+    });
+
+    it("throws FileExistsError when symlink target path exists", async () => {
+      await fs.writeFile("/existing", "x");
+      await expect(fs.symlink("/target", "/existing")).rejects.toThrow(FileExistsError);
+    });
+
+    it("unlink removes symlink without affecting target", async () => {
+      await fs.writeFile("/real", "data");
+      await fs.symlink("/real", "/link");
+      await fs.unlink("/link");
+      expect(await fs.exists("/link")).toBe(false);
+      expect(await fs.exists("/real")).toBe(true);
+    });
+
+    it("detects circular symlinks with max depth", async () => {
+      await fs.symlink("/b", "/a");
+      await fs.symlink("/a", "/b");
+      await expect(fs.readFile("/a")).rejects.toThrow();
     });
   });
 });
