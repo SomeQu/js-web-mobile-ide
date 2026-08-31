@@ -26,7 +26,6 @@ export function createEditor(options: EditorOptions): IEditor {
   const readOnlyCompartment = new Compartment();
 
   const changeListeners = new Set<(content: string) => void>();
-  let currentLanguage: LanguageId = "plaintext";
   let suppressChangeEvent = false;
 
   const updateListener = EditorView.updateListener.of((update) => {
@@ -68,7 +67,6 @@ export function createEditor(options: EditorOptions): IEditor {
   const editor: IEditor = {
     open(path: string, content: string, language?: LanguageId): void {
       const lang = language ?? detectLanguage(path);
-      currentLanguage = lang;
       suppressChangeEvent = true;
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: content },
@@ -89,7 +87,6 @@ export function createEditor(options: EditorOptions): IEditor {
     },
 
     setLanguage(language: LanguageId): void {
-      currentLanguage = language;
       view.dispatch({
         effects: languageCompartment.reconfigure(getLanguageExtension(language)),
       });

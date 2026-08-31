@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>editor-core demo</title>
+  <style>
+    body { margin: 0; font-family: system-ui; display: flex; flex-direction: column; height: 100vh; }
+    #toolbar { padding: 8px; background: #f0f0f0; display: flex; gap: 8px; align-items: center; }
+    #editor-container { flex: 1; overflow: hidden; }
+    select, button { padding: 4px 8px; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <select id="lang-select">
+      <option value="typescript">TypeScript</option>
+      <option value="javascript">JavaScript</option>
+      <option value="html">HTML</option>
+      <option value="css">CSS</option>
+      <option value="json">JSON</option>
+      <option value="markdown">Markdown</option>
+    </select>
+    <select id="theme-select">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+    <span id="status">Ready</span>
+  </div>
+  <div id="editor-container"></div>
+  <script type="module">
+    import { createEditor } from "./dist/index.js";
+
+    const container = document.getElementById("editor-container");
+    const langSelect = document.getElementById("lang-select");
+    const status = document.getElementById("status");
+
+    const editor = createEditor({ parent: container, theme: "light", lineNumbers: true });
+
+    const sampleCode = `import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <button onClick={() => setCount(c => c + 1)}>
+      Count: {count}
+    </button>
+  );
+}
+
+export default Counter;`;
+
+    editor.open("/App.tsx", sampleCode, "tsx");
+
+    editor.onChange((content) => {
+      status.textContent = `Changed: ${content.length} chars`;
+    });
+
+    langSelect.addEventListener("change", () => {
+      editor.setLanguage(langSelect.value);
+    });
+  </script>
+</body>
+</html>
