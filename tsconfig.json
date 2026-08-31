@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/vfs" },
+    { "path": "packages/resolver" },
+    { "path": "packages/registry-client" },
+    { "path": "packages/bundler" },
+    { "path": "packages/node-shims" },
+    { "path": "packages/runtime-bridge" },
+    { "path": "packages/git-client" },
+    { "path": "packages/ai-assistant" },
+    { "path": "packages/editor-core" }
+  ]
+}
