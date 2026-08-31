@@ -5,6 +5,7 @@ import {
   FileExistsError,
   IsADirectoryError,
   NotADirectoryError,
+  DirectoryNotEmptyError,
 } from "./errors.js";
 
 describe("MemoryFS", () => {
@@ -198,6 +199,37 @@ describe("MemoryFS", () => {
 
     it("throws FileNotFoundError for missing source", async () => {
       await expect(fs.rename("/nope", "/dest")).rejects.toThrow(FileNotFoundError);
+    });
+  });
+
+  describe("rmdir", () => {
+    it("removes an empty directory", async () => {
+      await fs.mkdir("/d");
+      await fs.rmdir("/d");
+      expect(await fs.exists("/d")).toBe(false);
+    });
+
+    it("throws DirectoryNotEmptyError for non-empty directory", async () => {
+      await fs.mkdir("/d");
+      await fs.writeFile("/d/f", "x");
+      await expect(fs.rmdir("/d")).rejects.toThrow(DirectoryNotEmptyError);
+    });
+
+    it("removes non-empty directory with recursive option", async () => {
+      await fs.mkdir("/d/sub", { recursive: true });
+      await fs.writeFile("/d/sub/f.txt", "x");
+      await fs.writeFile("/d/g.txt", "y");
+      await fs.rmdir("/d", { recursive: true });
+      expect(await fs.exists("/d")).toBe(false);
+    });
+
+    it("throws FileNotFoundError for missing directory", async () => {
+      await expect(fs.rmdir("/nope")).rejects.toThrow(FileNotFoundError);
+    });
+
+    it("throws NotADirectoryError for a file", async () => {
+      await fs.writeFile("/f", "x");
+      await expect(fs.rmdir("/f")).rejects.toThrow(NotADirectoryError);
     });
   });
 

@@ -5,6 +5,7 @@ import {
   FileExistsError,
   NotADirectoryError,
   IsADirectoryError,
+  DirectoryNotEmptyError,
   VfsError,
 } from "./errors.js";
 
@@ -181,6 +182,16 @@ export class MemoryFS implements IVirtualFileSystem {
   async exists(path: string): Promise<boolean> {
     const norm = normalize(path);
     return this.getNode(norm) !== undefined;
+  }
+
+  async rmdir(path: string, options?: { recursive?: boolean }): Promise<void> {
+    const norm = normalize(path);
+    const node = this.getNode(norm);
+    if (!node) throw new FileNotFoundError(norm);
+    if (node.kind !== "dir") throw new NotADirectoryError(norm);
+    if (!options?.recursive && node.children.size > 0) throw new DirectoryNotEmptyError(norm);
+    const parent = this.getParentDir(norm);
+    parent.children.delete(basename(norm));
   }
 
   async unlink(path: string): Promise<void> {
