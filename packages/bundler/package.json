@@ -18,5 +18,11 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "esbuild-wasm": "^0.28.2"
+  },
+  "peerDependencies": {
+    "@anthropic-ide/vfs": "workspace:*"
+  }
 }
