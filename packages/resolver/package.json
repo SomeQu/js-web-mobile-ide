@@ -22,5 +22,8 @@
   "peerDependencies": {
     "@anthropic-ide/vfs": "workspace:*",
     "@anthropic-ide/registry-client": "workspace:*"
+  },
+  "devDependencies": {
+    "pako": "^3.0.1"
   }
 }

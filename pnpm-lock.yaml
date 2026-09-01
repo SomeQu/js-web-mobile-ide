@@ -103,6 +103,10 @@ importers:
       '@anthropic-ide/vfs':
         specifier: workspace:*
         version: link:../vfs
+    devDependencies:
+      pako:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   packages/runtime-bridge: {}
 
