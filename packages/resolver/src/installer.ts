@@ -21,12 +21,9 @@ export function createResolver(): IResolver {
         const destPath = `/node_modules/${dep.name}`;
 
         const cached = await vfs.exists(`${destPath}/package.json`);
-        if (cached) {
-          downloaded++;
-          continue;
+        if (!cached) {
+          await client.downloadAndExtract(dep.tarballUrl, vfs, destPath);
         }
-
-        await client.downloadAndExtract(dep.tarballUrl, vfs, destPath);
         downloaded++;
 
         if (onProgress) {

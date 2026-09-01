@@ -129,10 +129,13 @@ describe("Integration: lock file → install → VFS", () => {
     expect(progress[0].total).toBe(2);
     expect(progress[1].downloaded).toBe(2);
 
-    // Verify caching: re-install should skip all
+    // Verify caching: re-install should skip fetch but still report progress
     const client2 = createRegistryClient();
     globalThis.fetch = vi.fn();
-    await resolver.install(graph, vfs, client2);
+    const cachedProgress: Array<{ total: number; downloaded: number; current: string }> = [];
+    await resolver.install(graph, vfs, client2, (p) => cachedProgress.push({ ...p }));
     expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(cachedProgress.length).toBe(2);
+    expect(cachedProgress[1].downloaded).toBe(2);
   });
 });
