@@ -16,7 +16,11 @@
     "test": "vitest run --config ../../vitest.config.ts --dir src",
     "typecheck": "tsc --noEmit"
   },
-  "files": [
-    "dist"
-  ]
+  "files": ["dist"],
+  "dependencies": {
+    "pako": "^3.0.1"
+  },
+  "peerDependencies": {
+    "@anthropic-ide/vfs": "workspace:*"
+  }
 }
