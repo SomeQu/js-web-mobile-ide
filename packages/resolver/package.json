@@ -18,5 +18,9 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "peerDependencies": {
+    "@anthropic-ide/vfs": "workspace:*",
+    "@anthropic-ide/registry-client": "workspace:*"
+  }
 }

@@ -95,7 +95,14 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
 
-  packages/resolver: {}
+  packages/resolver:
+    dependencies:
+      '@anthropic-ide/registry-client':
+        specifier: workspace:*
+        version: link:../registry-client
+      '@anthropic-ide/vfs':
+        specifier: workspace:*
+        version: link:../vfs
 
   packages/runtime-bridge: {}
 
