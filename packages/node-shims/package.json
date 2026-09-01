@@ -18,5 +18,15 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "peerDependencies": {
+    "@anthropic-ide/vfs": "workspace:*"
+  },
+  "dependencies": {
+    "esbuild-wasm": "0.25.5"
+  },
+  "devDependencies": {
+    "@anthropic-ide/vfs": "workspace:*",
+    "@types/node": "^22.16.0"
+  }
 }
