@@ -7,3 +7,4 @@ export type {
   BundleContext,
 } from "./types.js";
 export { initBundler } from "./bundler.js";
+export { createVfsPlugin } from "./vfs-plugin.js";

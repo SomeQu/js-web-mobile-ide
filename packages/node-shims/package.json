@@ -23,9 +23,10 @@
     "@anthropic-ide/vfs": "workspace:*"
   },
   "dependencies": {
-    "esbuild-wasm": "0.25.5"
+    "esbuild-wasm": "^0.28.2"
   },
   "devDependencies": {
+    "@anthropic-ide/bundler": "workspace:*",
     "@anthropic-ide/vfs": "workspace:*",
     "@types/node": "^22.16.0"
   }
