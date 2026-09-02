@@ -11,8 +11,8 @@ describe("createNodeShimsPlugin", () => {
 });
 
 describe("NODE_BUILTINS", () => {
-  it("contains all 10 supported built-in module names", () => {
-    expect(NODE_BUILTINS).toHaveLength(10);
+  it("contains all 11 supported built-in module names", () => {
+    expect(NODE_BUILTINS).toHaveLength(11);
     expect(NODE_BUILTINS).toEqual(
       expect.arrayContaining([
         "assert",
@@ -22,6 +22,7 @@ describe("NODE_BUILTINS", () => {
         "path",
         "process",
         "querystring",
+        "stream",
         "string_decoder",
         "url",
         "util",

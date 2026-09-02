@@ -6,6 +6,7 @@ export const NODE_BUILTINS = [
   "path",
   "process",
   "querystring",
+  "stream",
   "string_decoder",
   "url",
   "util",
