@@ -30,6 +30,7 @@ export function nextTick(
 }
 
 export const platform = "browser";
+export const arch = "arm64";
 export const version = "v20.0.0";
 export const versions: Record<string, string> = { node: "20.0.0" };
 export const pid = 1;
@@ -88,6 +89,7 @@ interface ProcessModule {
   chdir: typeof chdir;
   nextTick: typeof nextTick;
   platform: typeof platform;
+  arch: typeof arch;
   version: typeof version;
   versions: typeof versions;
   pid: typeof pid;
@@ -106,6 +108,7 @@ const process: ProcessModule = {
   chdir,
   nextTick,
   platform,
+  arch,
   version,
   versions,
   pid,

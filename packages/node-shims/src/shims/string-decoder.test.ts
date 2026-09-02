@@ -53,6 +53,20 @@ describe("StringDecoder latin1", () => {
   });
 });
 
+describe("StringDecoder base64", () => {
+  it("encodes bytes as base64", () => {
+    const decoder = new StringDecoder("base64");
+    expect(decoder.write(Buffer.from("hello"))).toBe("aGVsbG8=");
+  });
+});
+
+describe("StringDecoder hex", () => {
+  it("encodes bytes as hex", () => {
+    const decoder = new StringDecoder("hex");
+    expect(decoder.write(Buffer.from("hello"))).toBe("68656c6c6f");
+  });
+});
+
 describe("string_decoder default export", () => {
   it("exposes StringDecoder", () => {
     expect(stringDecoderModule.StringDecoder).toBe(StringDecoder);

@@ -48,7 +48,7 @@ export function type(): string {
 }
 
 export function release(): string {
-  return "23.0.0";
+  return "0.0.0";
 }
 
 export function version(): string {
@@ -87,11 +87,11 @@ export function cpus(): CpuInfo[] {
 }
 
 export function totalmem(): number {
-  return 8 * 1024 * 1024 * 1024;
+  return 4 * 1024 * 1024 * 1024;
 }
 
 export function freemem(): number {
-  return 4 * 1024 * 1024 * 1024;
+  return 2 * 1024 * 1024 * 1024;
 }
 
 export function uptime(): number {

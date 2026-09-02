@@ -180,7 +180,7 @@ export function format(pathObject: Partial<ParsedPath>): string {
   if (!resolvedDir) {
     return resolvedBase;
   }
-  if (resolvedDir === "/" ) {
+  if (resolvedDir === "/") {
     return `/${resolvedBase}`;
   }
   return `${resolvedDir}/${resolvedBase}`;

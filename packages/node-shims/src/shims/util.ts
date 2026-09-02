@@ -5,6 +5,32 @@
 type AnyFn = (...args: any[]) => any;
 type Callback = (err: unknown, value?: unknown) => void;
 
+// `TextEncoder`/`TextDecoder` are provided by the JavaScriptCore/WKWebView
+// host (and by Node, which is what vitest runs under), but the ES2020 lib
+// (no DOM) doesn't declare them — add minimal ambient shapes local to this
+// module, same pattern as `url.ts` uses for `URL`/`URLSearchParams`.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare class TextEncoder {
+  encode(input?: string): Uint8Array;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare class TextDecoder {
+  constructor(label?: string, options?: { fatal?: boolean });
+  decode(input?: Uint8Array): string;
+}
+
+// The declarations above are ambient *types* only — no runtime binding in
+// this module's scope. Pull the actual constructors off `globalThis` (where
+// the JSC/WKWebView host, and Node under vitest, both provide them).
+const GlobalTextEncoder = (
+  globalThis as unknown as { TextEncoder: typeof TextEncoder }
+).TextEncoder;
+const GlobalTextDecoder = (
+  globalThis as unknown as { TextDecoder: typeof TextDecoder }
+).TextDecoder;
+
+export { GlobalTextEncoder as TextEncoder, GlobalTextDecoder as TextDecoder };
+
 export function inherits(ctor: AnyFn, superCtor: AnyFn): void {
   Object.setPrototypeOf(ctor.prototype, superCtor.prototype);
   (ctor as unknown as { super_: AnyFn }).super_ = superCtor;
@@ -209,6 +235,8 @@ interface UtilModule {
   format: typeof format;
   inspect: typeof inspect;
   types: typeof types;
+  TextEncoder: typeof TextEncoder;
+  TextDecoder: typeof TextDecoder;
 }
 
 const util: UtilModule = {
@@ -219,6 +247,8 @@ const util: UtilModule = {
   format,
   inspect,
   types,
+  TextEncoder: GlobalTextEncoder,
+  TextDecoder: GlobalTextDecoder,
 };
 
 export default util;

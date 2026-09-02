@@ -215,6 +215,31 @@ describe("iterator", () => {
   });
 });
 
+describe("entries / keys / values", () => {
+  it("entries yields [index, byte] pairs", () => {
+    expect([...Buffer.from("Hi").entries()]).toEqual([
+      [0, 72],
+      [1, 105],
+    ]);
+  });
+
+  it("keys yields indices", () => {
+    expect([...Buffer.from("Hi").keys()]).toEqual([0, 1]);
+  });
+
+  it("values yields byte values", () => {
+    expect([...Buffer.from("Hi").values()]).toEqual([72, 105]);
+  });
+
+  it("entries/keys/values are independently iterable", () => {
+    const buf = Buffer.from("ab");
+    const e1 = buf.entries();
+    const e2 = buf.entries();
+    expect(e1.next()).toEqual({ value: [0, 97], done: false });
+    expect(e2.next()).toEqual({ value: [0, 97], done: false });
+  });
+});
+
 describe("write", () => {
   it("writes a string and returns bytes written", () => {
     const buf = Buffer.alloc(5);

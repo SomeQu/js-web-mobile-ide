@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import util, {
+  TextDecoder,
+  TextEncoder,
   callbackify,
   deprecate,
   format,
@@ -147,6 +149,18 @@ describe("types", () => {
   });
 });
 
+describe("TextEncoder / TextDecoder", () => {
+  it("re-exports the host TextEncoder", () => {
+    expect(new TextEncoder().encode("hi")).toEqual(
+      new Uint8Array([104, 105]),
+    );
+  });
+
+  it("re-exports the host TextDecoder", () => {
+    expect(new TextDecoder().decode(new Uint8Array([104, 105]))).toBe("hi");
+  });
+});
+
 describe("util default export", () => {
   it("contains all named exports", () => {
     expect(util.format).toBe(format);
@@ -156,5 +170,7 @@ describe("util default export", () => {
     expect(util.inherits).toBe(inherits);
     expect(util.deprecate).toBe(deprecate);
     expect(util.types).toBe(types);
+    expect(util.TextEncoder).toBe(TextEncoder);
+    expect(util.TextDecoder).toBe(TextDecoder);
   });
 });

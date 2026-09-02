@@ -8,6 +8,7 @@ declare class TextDecoder {
   constructor(label?: string, options?: { fatal?: boolean });
   decode(input?: Uint8Array, options?: { stream?: boolean }): string;
 }
+declare function btoa(data: string): string;
 
 export type StringDecoderEncoding =
   | "utf8"
@@ -84,6 +85,22 @@ function latin1Decode(bytes: Uint8Array): string {
   return s;
 }
 
+function hexDecode(bytes: Uint8Array): string {
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) {
+    out += bytes[i].toString(16).padStart(2, "0");
+  }
+  return out;
+}
+
+function base64Decode(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 // Deliberately loose: this only needs to describe "something with bytes in
 // it" well enough to accept both `Uint8Array` and the `Buffer` shim from
 // `./buffer.ts` (which is composition-based and has no index signature of
@@ -136,6 +153,10 @@ export class StringDecoder {
         case "latin1":
         case "binary":
           return latin1Decode(bytes);
+        case "base64":
+          return base64Decode(bytes);
+        case "hex":
+          return hexDecode(bytes);
         default:
           return latin1Decode(bytes);
       }

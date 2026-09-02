@@ -494,6 +494,46 @@ export class Buffer {
   [Symbol.iterator](): IterableIterator<number> {
     return this._buf[Symbol.iterator]();
   }
+
+  entries(): IterableIterator<[number, number]> {
+    const buf = this._buf;
+    let index = 0;
+    const iterator: IterableIterator<[number, number]> = {
+      next(): IteratorResult<[number, number]> {
+        if (index < buf.length) {
+          const result = { value: [index, buf[index]] as [number, number], done: false };
+          index++;
+          return result;
+        }
+        return { value: undefined as unknown as [number, number], done: true };
+      },
+      [Symbol.iterator](): IterableIterator<[number, number]> {
+        return iterator;
+      },
+    };
+    return iterator;
+  }
+
+  keys(): IterableIterator<number> {
+    const buf = this._buf;
+    let index = 0;
+    const iterator: IterableIterator<number> = {
+      next(): IteratorResult<number> {
+        if (index < buf.length) {
+          return { value: index++, done: false };
+        }
+        return { value: undefined as unknown as number, done: true };
+      },
+      [Symbol.iterator](): IterableIterator<number> {
+        return iterator;
+      },
+    };
+    return iterator;
+  }
+
+  values(): IterableIterator<number> {
+    return this._buf[Symbol.iterator]();
+  }
 }
 
 interface BufferModule {

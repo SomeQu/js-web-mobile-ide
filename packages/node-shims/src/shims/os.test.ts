@@ -9,6 +9,7 @@ import os, {
   hostname,
   networkInterfaces,
   platform,
+  release,
   tmpdir,
   totalmem,
   type,
@@ -34,9 +35,13 @@ describe("os stubs", () => {
     expect(list.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("returns positive memory values", () => {
-    expect(totalmem()).toBeGreaterThan(0);
-    expect(freemem()).toBeGreaterThan(0);
+  it("returns fixed memory values", () => {
+    expect(totalmem()).toBe(4 * 1024 * 1024 * 1024);
+    expect(freemem()).toBe(2 * 1024 * 1024 * 1024);
+  });
+
+  it("returns a fixed release value", () => {
+    expect(release()).toBe("0.0.0");
   });
 
   it("returns LE endianness", () => {

@@ -48,6 +48,10 @@ describe("process constants", () => {
     expect(process.platform).toBe("browser");
   });
 
+  it("arch is arm64", () => {
+    expect(process.arch).toBe("arm64");
+  });
+
   it("version matches vN", () => {
     expect(process.version).toMatch(/^v\d+/);
   });
