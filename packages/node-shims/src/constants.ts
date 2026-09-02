@@ -2,6 +2,7 @@ export const NODE_BUILTINS = [
   "assert",
   "buffer",
   "events",
+  "fs",
   "os",
   "path",
   "process",
