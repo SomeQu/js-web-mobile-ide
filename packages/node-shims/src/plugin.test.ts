@@ -11,12 +11,13 @@ describe("createNodeShimsPlugin", () => {
 });
 
 describe("NODE_BUILTINS", () => {
-  it("contains all 12 supported built-in module names", () => {
-    expect(NODE_BUILTINS).toHaveLength(12);
+  it("contains all 13 supported built-in module names", () => {
+    expect(NODE_BUILTINS).toHaveLength(13);
     expect(NODE_BUILTINS).toEqual(
       expect.arrayContaining([
         "assert",
         "buffer",
+        "crypto",
         "events",
         "fs",
         "os",

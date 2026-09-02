@@ -1,6 +1,7 @@
 export const NODE_BUILTINS = [
   "assert",
   "buffer",
+  "crypto",
   "events",
   "fs",
   "os",
