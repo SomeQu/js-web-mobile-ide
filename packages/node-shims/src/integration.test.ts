@@ -230,4 +230,89 @@ describe("node-shims integration", () => {
     );
     expect(result.errors).toHaveLength(0);
   });
+
+  it("resolves the stream shim and constructs PassThrough", async () => {
+    const vfs = await setupVfs();
+    const { result, logs } = await buildAndRun(
+      vfs,
+      "/project/src/index.ts",
+      `
+      import { PassThrough } from "stream";
+      const pt = new PassThrough();
+      pt.on("data", (chunk) => console.log(String(chunk)));
+      pt.write("stream-ok");
+      pt.end();
+      `,
+    );
+    expect(result.errors).toHaveLength(0);
+    expect(logs.join("\n")).toContain("stream-ok");
+  });
+
+  it("resolves the stream shim with node: prefix", async () => {
+    const vfs = await setupVfs();
+    const result = await buildWithShims(
+      vfs,
+      "/project/src/index.ts",
+      `import { Readable, Writable, Transform } from "node:stream";\nconsole.log(typeof Readable, typeof Writable, typeof Transform);`,
+    );
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it("resolves the fs shim", async () => {
+    const vfs = await setupVfs();
+    const result = await buildWithShims(
+      vfs,
+      "/project/src/index.ts",
+      `import { readFile, writeFile, promises } from "fs";\nconsole.log(typeof readFile, typeof writeFile, typeof promises);`,
+    );
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it("resolves the crypto shim and runs randomBytes", async () => {
+    const vfs = await setupVfs();
+    const { result, logs } = await buildAndRun(
+      vfs,
+      "/project/src/index.ts",
+      `
+      import { randomBytes } from "crypto";
+      const buf = randomBytes(4);
+      console.log(buf.length);
+      `,
+    );
+    expect(result.errors).toHaveLength(0);
+    expect(logs.join("\n")).toContain("4");
+  });
+
+  it("bundles all Phase 5B shims together with Phase 5A shims", async () => {
+    const vfs = await setupVfs();
+    const result = await buildWithShims(
+      vfs,
+      "/project/src/index.ts",
+      `
+      import { join } from "path";
+      import { Buffer } from "buffer";
+      import { EventEmitter } from "events";
+      import { Readable } from "stream";
+      import { readFile } from "fs";
+      import { randomBytes } from "crypto";
+      console.log(join("a","b"), Buffer.from("x"), new EventEmitter(), Readable, readFile, randomBytes(1));
+      `,
+    );
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it("resolves cross-shim imports in stream (stream imports events)", async () => {
+    const vfs = await setupVfs();
+    const { result, logs } = await buildAndRun(
+      vfs,
+      "/project/src/index.ts",
+      `
+      import { Readable } from "stream";
+      const r = new Readable({ read() { this.push("cross-ok"); this.push(null); } });
+      r.on("data", (c) => console.log(String(c)));
+      `,
+    );
+    expect(result.errors).toHaveLength(0);
+    expect(logs.join("\n")).toContain("cross-ok");
+  });
 });
