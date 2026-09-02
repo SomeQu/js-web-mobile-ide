@@ -24,6 +24,20 @@ declare class TextDecoder {
 type AnyFn = (...args: any[]) => any;
 type ErrCallback = (error?: Error | null) => void;
 
+// Maps common Node encoding names to the labels TextDecoder understands.
+// Other values are passed through as-is (TextDecoder supports a broader set
+// of labels than Node's encoding names, e.g. "utf-16le").
+function resolveTextDecoderEncoding(encoding: string): string {
+  const lower = encoding.toLowerCase();
+  if (lower === "utf8" || lower === "utf-8") {
+    return "utf-8";
+  }
+  if (lower === "ascii" || lower === "latin1") {
+    return "iso-8859-1";
+  }
+  return encoding;
+}
+
 function chunkLength(chunk: unknown, objectMode: boolean): number {
   if (objectMode) {
     return 1;
@@ -335,7 +349,7 @@ export class Readable extends Stream {
 
   setEncoding(encoding: string): this {
     this._rstate.encoding = encoding;
-    this._rstate.decoder = new TextDecoder();
+    this._rstate.decoder = new TextDecoder(resolveTextDecoderEncoding(encoding));
     return this;
   }
 

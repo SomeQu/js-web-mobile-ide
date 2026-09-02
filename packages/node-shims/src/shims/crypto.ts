@@ -54,6 +54,10 @@ const HASH_ALGORITHMS: Record<string, string> = {
   sha256: "SHA-256",
   sha384: "SHA-384",
   sha512: "SHA-512",
+  "sha-1": "SHA-1",
+  "sha-256": "SHA-256",
+  "sha-384": "SHA-384",
+  "sha-512": "SHA-512",
 };
 
 // Maps Node's cipher algorithm names to WebCrypto's algorithm name + key
@@ -264,8 +268,9 @@ export class Decipher {
     return Buffer.alloc(0);
   }
 
-  setAuthTag(tag: BufferLike): void {
+  setAuthTag(tag: BufferLike): this {
     this._authTag = toUint8Array(tag);
+    return this;
   }
 
   async final(): Promise<Buffer> {

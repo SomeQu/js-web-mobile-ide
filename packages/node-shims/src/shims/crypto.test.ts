@@ -163,6 +163,13 @@ describe("createHash", () => {
     const result = hash.update("hello");
     expect(result).toBe(hash);
   });
+
+  it("accepts hyphenated algorithm name (sha-256)", async () => {
+    const hash = createHash("sha-256");
+    hash.update("hello");
+    const hex = await hash.digest("hex");
+    expect(hex).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
+  });
 });
 
 describe("createHmac", () => {
