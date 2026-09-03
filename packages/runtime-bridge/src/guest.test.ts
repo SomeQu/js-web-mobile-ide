@@ -50,12 +50,12 @@ describe("GUEST_BOOTSTRAP", () => {
   });
 
   it("intercepts console.log and sends notification", () => {
-    const { sent } = createGuestEnv();
-    // The guest replaces console, so calling it will trigger the interception
-    // We test via the sent messages
-    const consoleMsgs = sent.filter((m) => m.method === "console");
-    // No console calls yet
-    expect(consoleMsgs).toHaveLength(0);
+    const { sent, ctx } = createGuestEnv();
+    ctx.console.log("hello", 42);
+    const consoleMsgs = sent.filter((m: any) => m.method === "console");
+    expect(consoleMsgs).toHaveLength(1);
+    expect(consoleMsgs[0].params.level).toBe("log");
+    expect(consoleMsgs[0].params.args).toEqual(["hello", 42]);
   });
 
   it("responds to exec request", async () => {
