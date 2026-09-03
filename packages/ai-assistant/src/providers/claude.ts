@@ -10,6 +10,7 @@ export interface ClaudeProviderOptions {
 export class ClaudeProvider implements IProvider {
   readonly name = "claude";
   private _apiKey: string;
+  private _blockTypes = new Map<number, "text" | "tool_use">();
 
   constructor(options: ClaudeProviderOptions) {
     this._apiKey = options.apiKey;
@@ -102,14 +103,17 @@ export class ClaudeProvider implements IProvider {
       }
 
       case "content_block_start": {
+        const index = data.index as number;
         const block = data.content_block as Record<string, unknown>;
         if (block.type === "tool_use") {
+          this._blockTypes.set(index, "tool_use");
           return {
             type: "tool_use_start",
             id: block.id as string,
             name: block.name as string,
           };
         }
+        this._blockTypes.set(index, "text");
         return null;
       }
 
@@ -124,8 +128,15 @@ export class ClaudeProvider implements IProvider {
         return null;
       }
 
-      case "content_block_stop":
-        return { type: "tool_use_end", id: "" };
+      case "content_block_stop": {
+        const index = data.index as number;
+        const blockType = this._blockTypes.get(index);
+        this._blockTypes.delete(index);
+        if (blockType === "tool_use") {
+          return { type: "tool_use_end", id: "" };
+        }
+        return null;
+      }
 
       default:
         return null;

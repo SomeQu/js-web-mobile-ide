@@ -232,6 +232,62 @@ describe("ClaudeProvider", () => {
       expect(delta).toEqual({ type: "tool_use_end", id: "" });
     });
 
+    it("returns null for content_block_stop of a text block (isolated instance)", () => {
+      const p = new ClaudeProvider({ apiKey: "k" });
+      p.parseStreamChunk(
+        JSON.stringify({
+          type: "content_block_start",
+          index: 0,
+          content_block: { type: "text", text: "" },
+        }),
+      );
+      const delta = p.parseStreamChunk(
+        JSON.stringify({ type: "content_block_stop", index: 0 }),
+      );
+      expect(delta).toBeNull();
+    });
+
+    it("returns tool_use_end for content_block_stop of a tool_use block (isolated instance)", () => {
+      const p = new ClaudeProvider({ apiKey: "k" });
+      p.parseStreamChunk(
+        JSON.stringify({
+          type: "content_block_start",
+          index: 0,
+          content_block: { type: "tool_use", id: "tu_1", name: "readFile" },
+        }),
+      );
+      const delta = p.parseStreamChunk(
+        JSON.stringify({ type: "content_block_stop", index: 0 }),
+      );
+      expect(delta).toEqual({ type: "tool_use_end", id: "" });
+    });
+
+    it("tracks multiple concurrent block indices independently", () => {
+      const p = new ClaudeProvider({ apiKey: "k" });
+      p.parseStreamChunk(
+        JSON.stringify({
+          type: "content_block_start",
+          index: 0,
+          content_block: { type: "text", text: "" },
+        }),
+      );
+      p.parseStreamChunk(
+        JSON.stringify({
+          type: "content_block_start",
+          index: 1,
+          content_block: { type: "tool_use", id: "tu_1", name: "readFile" },
+        }),
+      );
+      const textStop = p.parseStreamChunk(
+        JSON.stringify({ type: "content_block_stop", index: 0 }),
+      );
+      const toolStop = p.parseStreamChunk(
+        JSON.stringify({ type: "content_block_stop", index: 1 }),
+      );
+      expect(textStop).toBeNull();
+      expect(toolStop).toEqual({ type: "tool_use_end", id: "" });
+    });
+
     it("parses message_stop as message_end", () => {
       const chunk = JSON.stringify({ type: "message_stop" });
       const delta = provider.parseStreamChunk(chunk);

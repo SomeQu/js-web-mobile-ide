@@ -25,3 +25,6 @@ export type { CodexProviderOptions } from "./providers/codex.js";
 export { CodexProvider } from "./providers/codex.js";
 
 export { Agent } from "./agent.js";
+
+export type { Conversation } from "./conversation.js";
+export { ConversationManager } from "./conversation.js";
