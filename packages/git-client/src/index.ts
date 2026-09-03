@@ -28,3 +28,5 @@ export {
   GitMergeConflictError,
   GitRefNotFoundError,
 } from "./errors.js";
+
+export { createFsAdapter } from "./fs-adapter.js";
