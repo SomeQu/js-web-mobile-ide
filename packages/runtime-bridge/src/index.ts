@@ -30,3 +30,4 @@ export type { NetworkHandler } from "./network-proxy.js";
 export { NetworkProxy } from "./network-proxy.js";
 export type { RuntimeBridgeOptions } from "./runtime.js";
 export { RuntimeBridge } from "./runtime.js";
+export { GUEST_BOOTSTRAP } from "./guest.js";
