@@ -1,1 +1,19 @@
-export {};
+// packages/ai-assistant/src/index.ts
+
+export type {
+  Role,
+  ContentPart,
+  Message,
+  ToolDefinition,
+  StreamDelta,
+  ToolExecutor,
+  AgentOptions,
+  AgentCallbacks,
+} from "./types.js";
+
+export type { IProvider } from "./provider.js";
+
+export type { HttpResponse, IHttpTransport } from "./transport.js";
+
+export type { MockStreamConfig } from "./mock-transport.js";
+export { MockHttpTransport } from "./mock-transport.js";
