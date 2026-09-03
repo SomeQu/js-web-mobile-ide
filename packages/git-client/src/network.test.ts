@@ -182,3 +182,141 @@ describe("GitClient network operations (in-memory)", () => {
     expect(remotes[0].name).toBe("origin");
   });
 });
+
+// The simulation helpers above exercise git plumbing but never call
+// GitClient.clone()/push()/fetch()/pull() themselves, so those four public
+// methods had zero coverage. These tests call the real methods against a
+// mock IGitHttpClient that always returns HTTP 401, which is enough to
+// verify (a) each method actually forwards to isomorphic-git with the
+// configured http adapter and the right smart-HTTP service endpoint, (b)
+// `onAuth` is invoked with the remote URL when the server challenges for
+// credentials, and (c) the resulting HTTP error propagates out of the
+// GitClient method rather than being swallowed.
+describe("GitClient network method wiring", () => {
+  function createAuthChallengingHttp(): { http: IGitHttpClient; calls: { url: string; method: string }[] } {
+    const calls: { url: string; method: string }[] = [];
+    const http: IGitHttpClient = {
+      request: async (config) => {
+        calls.push({ url: config.url, method: config.method });
+        return {
+          url: config.url,
+          method: config.method,
+          statusCode: 401,
+          statusMessage: "Unauthorized",
+          headers: {},
+          body: [],
+        };
+      },
+    };
+    return { http, calls };
+  }
+
+  it("clone() calls through to isomorphic-git with the configured http client and invokes onAuth", async () => {
+    const vfs = new MemoryFS();
+    const fs = createFsAdapter(vfs);
+    await vfs.mkdir("/cloned", { recursive: true });
+    const { http, calls } = createAuthChallengingHttp();
+    const authCalls: string[] = [];
+    const client = new GitClient({
+      fs: fs.promises,
+      http,
+      dir: "/cloned",
+      author: testAuthor,
+      onAuth: async (url) => {
+        authCalls.push(url);
+        return { username: "u", password: "p" };
+      },
+    });
+
+    await expect(client.clone("https://example.com/repo.git")).rejects.toThrow();
+
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0].method).toBe("GET");
+    expect(calls[0].url).toContain("https://example.com/repo.git/info/refs?service=git-upload-pack");
+    expect(authCalls).toEqual(["https://example.com/repo.git"]);
+  });
+
+  it("fetch() calls through to isomorphic-git with the configured http client and invokes onAuth", async () => {
+    const vfs = new MemoryFS();
+    const fs = createFsAdapter(vfs);
+    await vfs.mkdir("/repo", { recursive: true });
+    const { http, calls } = createAuthChallengingHttp();
+    const authCalls: string[] = [];
+    const client = new GitClient({
+      fs: fs.promises,
+      http,
+      dir: "/repo",
+      author: testAuthor,
+      onAuth: async (url) => {
+        authCalls.push(url);
+        return { username: "u", password: "p" };
+      },
+    });
+    await client.init();
+    await client.addRemote("origin", "https://example.com/repo.git");
+
+    await expect(client.fetch({ remote: "origin" })).rejects.toThrow();
+
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0].url).toContain("https://example.com/repo.git/info/refs?service=git-upload-pack");
+    expect(authCalls).toEqual(["https://example.com/repo.git"]);
+  });
+
+  it("push() calls through to isomorphic-git with the configured http client and invokes onAuth", async () => {
+    const vfs = new MemoryFS();
+    const fs = createFsAdapter(vfs);
+    await vfs.mkdir("/repo", { recursive: true });
+    const { http, calls } = createAuthChallengingHttp();
+    const authCalls: string[] = [];
+    const client = new GitClient({
+      fs: fs.promises,
+      http,
+      dir: "/repo",
+      author: testAuthor,
+      onAuth: async (url) => {
+        authCalls.push(url);
+        return { username: "u", password: "p" };
+      },
+    });
+    await client.init();
+    await vfs.writeFile("/repo/a.txt", "hi");
+    await client.add("a.txt");
+    await client.commit("init");
+    await client.addRemote("origin", "https://example.com/repo.git");
+
+    await expect(client.push({ remote: "origin" })).rejects.toThrow();
+
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0].url).toContain("https://example.com/repo.git/info/refs?service=git-receive-pack");
+    expect(authCalls).toEqual(["https://example.com/repo.git"]);
+  });
+
+  it("pull() calls through to isomorphic-git with the configured http client and invokes onAuth", async () => {
+    const vfs = new MemoryFS();
+    const fs = createFsAdapter(vfs);
+    await vfs.mkdir("/repo", { recursive: true });
+    const { http, calls } = createAuthChallengingHttp();
+    const authCalls: string[] = [];
+    const client = new GitClient({
+      fs: fs.promises,
+      http,
+      dir: "/repo",
+      author: testAuthor,
+      onAuth: async (url) => {
+        authCalls.push(url);
+        return { username: "u", password: "p" };
+      },
+    });
+    await client.init();
+    await vfs.writeFile("/repo/a.txt", "hi");
+    await client.add("a.txt");
+    await client.commit("init");
+    await client.addRemote("origin", "https://example.com/repo.git");
+
+    await expect(client.pull({ remote: "origin" })).rejects.toThrow();
+
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0].url).toContain("https://example.com/repo.git/info/refs?service=git-upload-pack");
+    expect(authCalls).toEqual(["https://example.com/repo.git"]);
+  });
+});
