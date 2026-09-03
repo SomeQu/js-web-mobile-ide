@@ -15,7 +15,7 @@ import type {
   OnAuth,
   IGitHttpClient,
 } from "./types.js";
-import { GitMergeConflictError } from "./errors.js";
+import { GitMergeConflictError, GitAuthError, GitRefNotFoundError } from "./errors.js";
 import { createHttpAdapter } from "./http.js";
 import { saveStash, popStash, listStash } from "./stash.js";
 
@@ -42,21 +42,45 @@ export class GitClient {
     return author;
   }
 
+  private _wrapAuthError(err: unknown, url: string): never {
+    if (err instanceof Error) {
+      const code = (err as any).code;
+      if (code === "HttpError") {
+        const statusCode = (err as any).data?.statusCode;
+        if (statusCode === 401 || statusCode === 403) {
+          throw new GitAuthError(url);
+        }
+      }
+    }
+    throw err;
+  }
+
+  private _wrapRefError(err: unknown, refName: string): never {
+    if (err instanceof Error && (err as any).code === "NotFoundError") {
+      throw new GitRefNotFoundError(refName);
+    }
+    throw err;
+  }
+
   async init(): Promise<void> {
     await git.init({ fs: this._fs, dir: this._dir, defaultBranch: "main" });
   }
 
   async clone(url: string, opts?: { ref?: string; depth?: number; onProgress?: OnProgress }): Promise<void> {
-    await git.clone({
-      fs: this._fs,
-      http: this._http,
-      dir: this._dir,
-      url,
-      ref: opts?.ref,
-      depth: opts?.depth,
-      onProgress: opts?.onProgress,
-      onAuth: this._onAuth ? () => this._onAuth!(url) : undefined,
-    });
+    try {
+      await git.clone({
+        fs: this._fs,
+        http: this._http,
+        dir: this._dir,
+        url,
+        ref: opts?.ref,
+        depth: opts?.depth,
+        onProgress: opts?.onProgress,
+        onAuth: this._onAuth ? (u: string) => this._onAuth!(u) : undefined,
+      });
+    } catch (err: unknown) {
+      this._wrapAuthError(err, url);
+    }
   }
 
   async add(filepath: string): Promise<void> {
@@ -73,12 +97,20 @@ export class GitClient {
   }
 
   async log(opts?: { ref?: string; depth?: number }): Promise<GitLogEntry[]> {
-    const commits = await git.log({
-      fs: this._fs,
-      dir: this._dir,
-      ref: opts?.ref,
-      depth: opts?.depth,
-    });
+    let commits;
+    try {
+      commits = await git.log({
+        fs: this._fs,
+        dir: this._dir,
+        ref: opts?.ref,
+        depth: opts?.depth,
+      });
+    } catch (err: unknown) {
+      if (opts?.ref) {
+        this._wrapRefError(err, opts.ref);
+      }
+      throw err;
+    }
     return commits.map((c) => ({
       oid: c.oid,
       commit: {
@@ -118,7 +150,11 @@ export class GitClient {
   }
 
   async deleteBranch(name: string): Promise<void> {
-    await git.deleteBranch({ fs: this._fs, dir: this._dir, ref: name });
+    try {
+      await git.deleteBranch({ fs: this._fs, dir: this._dir, ref: name });
+    } catch (err: unknown) {
+      this._wrapRefError(err, name);
+    }
   }
 
   async listBranches(): Promise<GitBranch[]> {
@@ -133,7 +169,11 @@ export class GitClient {
   }
 
   async checkout(ref: string): Promise<void> {
-    await git.checkout({ fs: this._fs, dir: this._dir, ref });
+    try {
+      await git.checkout({ fs: this._fs, dir: this._dir, ref });
+    } catch (err: unknown) {
+      this._wrapRefError(err, ref);
+    }
   }
 
   async currentBranch(): Promise<string | undefined> {
@@ -155,6 +195,9 @@ export class GitClient {
       if ((err as any).code === "MergeConflictError") {
         throw new GitMergeConflictError((err as any).data?.filepaths ?? [theirs]);
       }
+      if ((err as any).code === "NotFoundError") {
+        throw new GitRefNotFoundError(theirs);
+      }
       throw err;
     }
   }
@@ -169,7 +212,11 @@ export class GitClient {
   }
 
   async deleteTag(name: string): Promise<void> {
-    await git.deleteTag({ fs: this._fs, dir: this._dir, ref: name });
+    try {
+      await git.deleteTag({ fs: this._fs, dir: this._dir, ref: name });
+    } catch (err: unknown) {
+      this._wrapRefError(err, name);
+    }
   }
 
   async listTags(): Promise<GitTag[]> {
@@ -196,41 +243,53 @@ export class GitClient {
   }
 
   async fetch(opts?: { remote?: string; ref?: string; onProgress?: OnProgress }): Promise<void> {
-    await git.fetch({
-      fs: this._fs,
-      http: this._http,
-      dir: this._dir,
-      remote: opts?.remote,
-      ref: opts?.ref,
-      onProgress: opts?.onProgress,
-      onAuth: this._onAuth ? (url: string) => this._onAuth!(url) : undefined,
-    });
+    try {
+      await git.fetch({
+        fs: this._fs,
+        http: this._http,
+        dir: this._dir,
+        remote: opts?.remote,
+        ref: opts?.ref,
+        onProgress: opts?.onProgress,
+        onAuth: this._onAuth ? (url: string) => this._onAuth!(url) : undefined,
+      });
+    } catch (err: unknown) {
+      this._wrapAuthError(err, opts?.remote ?? "unknown");
+    }
   }
 
   async pull(opts?: { remote?: string; ref?: string; author?: GitAuthor; onProgress?: OnProgress }): Promise<void> {
     const author = this._getAuthor(opts?.author);
-    await git.pull({
-      fs: this._fs,
-      http: this._http,
-      dir: this._dir,
-      remote: opts?.remote,
-      ref: opts?.ref,
-      author,
-      onProgress: opts?.onProgress,
-      onAuth: this._onAuth ? (url: string) => this._onAuth!(url) : undefined,
-    });
+    try {
+      await git.pull({
+        fs: this._fs,
+        http: this._http,
+        dir: this._dir,
+        remote: opts?.remote,
+        ref: opts?.ref,
+        author,
+        onProgress: opts?.onProgress,
+        onAuth: this._onAuth ? (url: string) => this._onAuth!(url) : undefined,
+      });
+    } catch (err: unknown) {
+      this._wrapAuthError(err, opts?.remote ?? "unknown");
+    }
   }
 
   async push(opts?: { remote?: string; ref?: string; onProgress?: OnProgress }): Promise<void> {
-    await git.push({
-      fs: this._fs,
-      http: this._http,
-      dir: this._dir,
-      remote: opts?.remote,
-      ref: opts?.ref,
-      onProgress: opts?.onProgress,
-      onAuth: this._onAuth ? (url: string) => this._onAuth!(url) : undefined,
-    });
+    try {
+      await git.push({
+        fs: this._fs,
+        http: this._http,
+        dir: this._dir,
+        remote: opts?.remote,
+        ref: opts?.ref,
+        onProgress: opts?.onProgress,
+        onAuth: this._onAuth ? (url: string) => this._onAuth!(url) : undefined,
+      });
+    } catch (err: unknown) {
+      this._wrapAuthError(err, opts?.remote ?? "unknown");
+    }
   }
 
   async stash(opts?: { message?: string }): Promise<void> {

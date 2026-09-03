@@ -104,6 +104,19 @@ describe("stash", () => {
     await expect(client.stash()).rejects.toThrow();
   });
 
+  it("stash captures unstaged working directory changes", async () => {
+    await vfs.writeFile("/repo/base.txt", "unstaged change");
+    await client.stash({ message: "unstaged" });
+
+    const content = await vfs.readFile("/repo/base.txt");
+    const text = new TextDecoder().decode(content);
+    expect(text).toBe("base content");
+
+    await client.stashPop();
+    const restored = await vfs.readFile("/repo/base.txt");
+    expect(new TextDecoder().decode(restored)).toBe("unstaged change");
+  });
+
   it("stash handles a newly added file", async () => {
     await vfs.writeFile("/repo/new.txt", "new file content");
     await client.add("new.txt");
