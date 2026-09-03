@@ -30,3 +30,5 @@ export {
 } from "./errors.js";
 
 export { createFsAdapter } from "./fs-adapter.js";
+
+export { createHttpAdapter } from "./http.js";
