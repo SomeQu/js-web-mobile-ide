@@ -240,6 +240,9 @@ export class RuntimeBridge {
       if (this._vfsProxy) {
         this._vfsProxy.handleRequest(request).then((response) => {
           this._transport.send(serialize(response));
+        }).catch(() => {
+          const errResp = { id: request.id, error: { code: "VFS_ERROR" as const, message: "Internal VFS error" } };
+          this._transport.send(serialize(errResp));
         });
       } else {
         const response = {
@@ -254,9 +257,15 @@ export class RuntimeBridge {
     if (method === "fetch") {
       this._networkProxy.handleRequest(request).then((response) => {
         this._transport.send(serialize(response));
+      }).catch(() => {
+        const errResp = { id: request.id, error: { code: "NETWORK_ERROR" as const, message: "Internal network error" } };
+        this._transport.send(serialize(errResp));
       });
       return;
     }
+
+    const unknownResp = { id: request.id, error: { code: "METHOD_NOT_FOUND" as const, message: `Unknown method: ${method}` } };
+    this._transport.send(serialize(unknownResp));
   }
 
   private _handleNotification(notification: { method: string; params?: Record<string, unknown> }): void {
