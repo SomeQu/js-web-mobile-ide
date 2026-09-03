@@ -24,3 +24,7 @@ export {
 } from "./protocol.js";
 export type { ITransport } from "./transport.js";
 export { MockTransport } from "./transport.js";
+export { ConsoleCollector } from "./console-capture.js";
+export { VfsProxy } from "./vfs-proxy.js";
+export type { NetworkHandler } from "./network-proxy.js";
+export { NetworkProxy } from "./network-proxy.js";

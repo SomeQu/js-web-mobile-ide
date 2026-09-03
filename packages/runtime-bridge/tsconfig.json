@@ -6,5 +6,7 @@
     "lib": ["ES2020", "DOM"]
   },
   "include": ["src"],
-  "references": []
+  "references": [
+    { "path": "../vfs" }
+  ]
 }
