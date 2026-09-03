@@ -20,3 +20,6 @@ export { MockHttpTransport } from "./mock-transport.js";
 
 export type { ClaudeProviderOptions } from "./providers/claude.js";
 export { ClaudeProvider } from "./providers/claude.js";
+
+export type { CodexProviderOptions } from "./providers/codex.js";
+export { CodexProvider } from "./providers/codex.js";
