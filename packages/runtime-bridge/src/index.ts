@@ -28,3 +28,5 @@ export { ConsoleCollector } from "./console-capture.js";
 export { VfsProxy } from "./vfs-proxy.js";
 export type { NetworkHandler } from "./network-proxy.js";
 export { NetworkProxy } from "./network-proxy.js";
+export type { RuntimeBridgeOptions } from "./runtime.js";
+export { RuntimeBridge } from "./runtime.js";
