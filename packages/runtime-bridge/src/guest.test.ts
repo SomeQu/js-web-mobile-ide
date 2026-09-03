@@ -61,7 +61,7 @@ describe("GUEST_BOOTSTRAP", () => {
   it("responds to exec request", async () => {
     const { sent, receiveFromIDE } = createGuestEnv();
 
-    receiveFromIDE({ id: "test-1", method: "exec", params: { code: "1 + 1" } });
+    receiveFromIDE({ id: "test-1", method: "exec", params: { code: "return 1 + 1" } });
     await new Promise((r) => setTimeout(r, 20));
 
     const responses = sent.filter((m) => m.id === "test-1");

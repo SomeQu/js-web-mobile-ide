@@ -236,7 +236,7 @@ export const GUEST_BOOTSTRAP: string = `(function() {
       var params = msg.params || {};
 
       if (method === "exec") {
-        var fn = new Function("return (async function() {\\n  return eval(" + JSON.stringify(params.code) + ");\\n})()");
+        var fn = new Function("return (async function() {\\n" + params.code + "\\n})()");
         fn().then(function(result) {
           sendResponse(msg.id, { result: result });
         }).catch(function(err) {
