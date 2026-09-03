@@ -86,6 +86,11 @@ export interface FsAdapterStats {
   mode: number;
   size: number;
   mtimeMs: number;
+  ctimeMs: number;
+  dev: number;
+  ino: number;
+  uid: number;
+  gid: number;
   isFile(): boolean;
   isDirectory(): boolean;
   isSymbolicLink(): boolean;

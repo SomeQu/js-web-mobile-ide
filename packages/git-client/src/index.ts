@@ -32,3 +32,5 @@ export {
 export { createFsAdapter } from "./fs-adapter.js";
 
 export { createHttpAdapter } from "./http.js";
+
+export { GitClient } from "./client.js";
