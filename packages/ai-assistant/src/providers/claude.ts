@@ -92,6 +92,7 @@ export class ClaudeProvider implements IProvider {
 
     switch (eventType) {
       case "message_start":
+        this._blockTypes.clear();
         return { type: "message_start" };
 
       case "message_stop":

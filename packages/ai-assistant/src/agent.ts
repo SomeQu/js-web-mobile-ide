@@ -13,7 +13,9 @@ import type { IProvider } from "./provider.js";
 import type { IHttpTransport } from "./transport.js";
 
 function abortError(): Error {
-  return new Error("Aborted");
+  const err = new Error("Aborted");
+  (err as any).code = "ABORT";
+  return err;
 }
 
 export class Agent {
