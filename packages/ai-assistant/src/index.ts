@@ -17,3 +17,6 @@ export type { HttpResponse, IHttpTransport } from "./transport.js";
 
 export type { MockStreamConfig } from "./mock-transport.js";
 export { MockHttpTransport } from "./mock-transport.js";
+
+export type { ClaudeProviderOptions } from "./providers/claude.js";
+export { ClaudeProvider } from "./providers/claude.js";
