@@ -17,6 +17,7 @@ import type {
 } from "./types.js";
 import { GitMergeConflictError } from "./errors.js";
 import { createHttpAdapter } from "./http.js";
+import { saveStash, popStash, listStash } from "./stash.js";
 
 export class GitClient {
   private readonly _fs: { promises: FsAdapter };
@@ -151,8 +152,8 @@ export class GitClient {
       });
       return result.oid ?? "";
     } catch (err: unknown) {
-      if (err instanceof Error && err.message.includes("CONFLICT")) {
-        throw new GitMergeConflictError([theirs]);
+      if ((err as any).code === "MergeConflictError") {
+        throw new GitMergeConflictError((err as any).data?.filepaths ?? [theirs]);
       }
       throw err;
     }
@@ -232,15 +233,16 @@ export class GitClient {
     });
   }
 
-  async stash(_opts?: { message?: string }): Promise<void> {
-    throw new Error("Not implemented — see Task 5");
+  async stash(opts?: { message?: string }): Promise<void> {
+    const author = this._getAuthor();
+    await saveStash(this._fs, this._dir, author, opts?.message);
   }
 
   async stashPop(): Promise<void> {
-    throw new Error("Not implemented — see Task 5");
+    await popStash(this._fs, this._dir);
   }
 
   async stashList(): Promise<GitStashEntry[]> {
-    throw new Error("Not implemented — see Task 5");
+    return listStash(this._fs, this._dir);
   }
 }
