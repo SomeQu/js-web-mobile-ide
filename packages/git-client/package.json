@@ -18,5 +18,11 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "isomorphic-git": "^1.41.9"
+  },
+  "devDependencies": {
+    "@anthropic-ide/vfs": "workspace:^"
+  }
 }
